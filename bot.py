@@ -14,12 +14,25 @@ import gspread
 from google.oauth2.service_account import Credentials
 
 # ===================== НАСТРОЙКИ =====================
-BOT_TOKEN = os.getenv("BOT_TOKEN") or "ВСТАВЬ_ТОКЕН_СЮДА"  # или os.getenv для хостинга
-ADMIN_ID = int(os.getenv("ADMIN_ID") or 123456789)         # твой ID
-SPREADSHEET_ID = os.getenv("SPREADSHEET_ID") or "1aBcDeFgHiJkLmNoPqRsTuVwXyZ"  # ID таблицы
+BOT_TOKEN = os.getenv("8080966853:AAHP1jE9ftGDi8OCpUCviSLfo_BWRFEYdJY
+") or "ВСТАВЬ_ТОКЕН_СЮДА"  # или os.getenv для хостинга
+ADMIN_ID = int(os.getenv("Motiv33") or 123456789)         # твой ID
+SPREADSHEET_ID = os.getenv("1-1PdlrEW5XhDOqMJgym5hBR4QGJsMBwcxDhxf5lSP50") or "1aBcDeFgHiJkLmNoPqRsTuVwXyZ"  # ID таблицы
 
 # JSON-ключи сервисного аккаунта (вставь весь JSON как строку)
-GOOGLE_CREDENTIALS = os.getenv("GOOGLE_CREDENTIALS") or """
+GOOGLE_CREDENTIALS = os.getenv("{
+  "type": "service_account",
+  "project_id": "telegram-bot-reviews",
+  "private_key_id": "82f4fa5e7e44b00c29fa27646ba38c95e936f0bb",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDFURF9D1jRX+Ox\njvHyRiBjvDQ9ajJ45kO0P4NhmUBK2krAklxXt/IxHtD3KG2xX7f3VLHQ+WzCcsXM\n4jDwcb30M0EUA/wITB/CA2/4lIqfchCKLGzarqHDrUHI2K1veKLnFY9lUSbUEh9J\nIGwR8CEXf2D/fa4rupyqE+rBFzFfnJ3VScXEfFTfaqj7xYDv4rsdscEJtFX5UnzP\nxkxDjtWnvxR/dirQ5UimtIad3N293ZoX9wMuUTBjCNyCuzTLf/Se3HzK1zPtnXrS\na1PdOa2CVNETueYYCfpdA79GXMSQtODkXzIL9YvwMPgcYIyc3oogr/o7yNNs9KfV\neoGUyqftAgMBAAECggEAAeyryjNP9cwZMlB9FNpT7Wi8rOHaTavMAHrx1SscUv0e\n1e/b36pU+BmK9XLlM4qdNSlUBDScZlYd66IJx0tP+un3Vcbv5igAGWLx+BD1jZ8n\n+xio9wvhCUGpUynqxAqt+EC0YEVlpsIAw50qi5UP7TNnSFAbBSqqlDCKrWjy+jer\nbhMOWYTTAIjpVX0m7yDnrY2moX9F19yGiFw9NTHTf74nOyE358tszQvymLX3MX60\n7/Te2wga/f9A+CNO35cF87ULWAYUvzOe5A24jY/tt8aTMnX/gd5ojHwk2Sxvjb6g\niiZzCr2yx0ifJYwiN5Nw2W63W7K9l2kwDogSmzdP4QKBgQDjdQAxipwBQPDEaMSz\nPNn30NF+ficNubCJTGw0uX/W4LjUr0dNCsEIwjeZiSGbG7wXRsm+IwD5TOpCbcgV\n3WLCn5nGLpF7dtAQzdk8dgYmI4qxUMAVfinlFkQ2oj6eorxjZUcnBK8JqGhnDOPM\nPic81VOSuMhkguOBdByil1dSYQKBgQDeE9DuoGzR9bEdLziYNicIT9R4vC2ZkZPw\nl2w26fSAxmrUihbEiZRgw01F8jyKh4UELRq0HxJY0Ijf68meh44gw+y47novxaKb\nEqAQ77b2QO9vlTRa2CZr9DtvrtzpnBZlPw4ZbLk8EF9rGakZzBtkgEzutsf0z6Gt\nycfyoFAZDQKBgQCufqLQXtrBp3VN6GYGb0d0czFUTildwTeqjQNyC2EEks+Y8oLL\nmtVuB7kpw2cRnFxWqwq4IBhuKNCKd7gI9hb+4fvRawZW5lZGnfTrCkw7VAbhcuZ5\nVpmDUuqv0xYhEw1dX2QPjetOiHDXpa7YkFH/vFRp+fJaEYPBWzdgkKP/4QKBgQCX\nz9IXHoHlceCWw84bd4FtVC06L+G4RmVspgbq7zoewgULsC5qQma1Uy1C8JpkVMog\nlbjYgxkmr7+x21zjy2TkjysHLLdIawGCotPbYBOh+bf0fnng1DxHthjfexk3dWV1\n5wn7ZXCnV8Xy0ALiSL49ENwGn9rHRx0OUY8nFGJNDQKBgQCXzkH1/1gmLvF3Ilvj\nSvELX18c2CbDaLCXW20uaJx9RTKVSwL+p/yRWEUeCs47YHzRte7gq+S88721JGXX\nxSGFtI6F/3sbN8gbaj5rF7UeDSrQ57zyY2doAEcsJrteO9CV2wOMwphkeBfUHBqE\nvYp/1DSpPxszTdcz2XFK0RBYjA==\n-----END PRIVATE KEY-----\n",
+  "client_email": "reviews-bot@telegram-bot-reviews.iam.gserviceaccount.com",
+  "client_id": "110804900846716095288",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/reviews-bot%40telegram-bot-reviews.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}") or """
 {
   "type": "service_account",
   "project_id": "your-project",
