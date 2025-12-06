@@ -3,6 +3,31 @@ import os
 import json
 from datetime import datetime
 
+print("=== ОТЛАДКА НАЧАЛО ===")
+print("BOT_TOKEN:", os.getenv("BOT_TOKEN")[:10] + "..." if os.getenv("BOT_TOKEN") else "НЕТ!")
+print("ADMIN_ID:", os.getenv("ADMIN_ID"))
+print("SPREADSHEET_ID:", os.getenv("SPREADSHEET_ID"))
+print("GOOGLE_CREDENTIALS length:", len(os.getenv("GOOGLE_CREDENTIALS", "")))
+
+try:
+    creds_dict = json.loads(os.getenv("GOOGLE_CREDENTIALS"))
+    print("JSON распарсился успешно")
+    print("client_email:", creds_dict.get("client_email"))
+except Exception as e:
+    print("ОШИБКА ПАРСИНГА JSON:", str(e))
+    raise
+
+from google.oauth2.service_account import Credentials
+import gspread
+
+scopes = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
+gc = gspread.authorize(creds)
+
+print("Авторизация прошла — пробуем открыть таблицу...")
+sh = gc.open_by_key(os.getenv("SPREADSHEET_ID"))
+print("ТАБЛИЦА УСПЕШНО ОТКРЫТА! БОТ РАБОТАЕТ!")
+
 from aiogram import Bot, Dispatcher, Router, F
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from aiogram.filters import Command
