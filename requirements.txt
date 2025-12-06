@@ -1,4 +1,5 @@
 aiogram==3.13
 gspread
 google-auth
+fastapi
 uvicorn[standard]
