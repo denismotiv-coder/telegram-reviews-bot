@@ -14,8 +14,7 @@ import gspread
 from google.oauth2.service_account import Credentials
 
 # ===================== НАСТРОЙКИ =====================
-BOT_TOKEN = os.getenv("8080966853:AAHP1jE9ftGDi8OCpUCviSLfo_BWRFEYdJY
-") or "ВСТАВЬ_ТОКЕН_СЮДА"  # или os.getenv для хостинга
+BOT_TOKEN = os.getenv("BOT_TOKEN") or "8080966853:AAHP1jE9ftGDi8OCpUCviSLfo_BWRFEYdJY"  # или os.getenv для хостинга
 ADMIN_ID = int(os.getenv("Motiv33") or 123456789)         # твой ID
 SPREADSHEET_ID = os.getenv("1-1PdlrEW5XhDOqMJgym5hBR4QGJsMBwcxDhxf5lSP50") or "1aBcDeFgHiJkLmNoPqRsTuVwXyZ"  # ID таблицы
 
