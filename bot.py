@@ -27,119 +27,123 @@ creds = Credentials.from_service_account_info(creds_dict, scopes=[
 gc = gspread.authorize(creds)
 sh = gc.open_by_key(SPREADSHEET_ID)
 
-# Листы
-def ws(name):
+# Листы с автосозданием
+def get_sheet(name, header):
     try:
         return sh.worksheet(name)
     except:
-        w = sh.add_worksheet(title=name, rows=500, cols=5)
-        w.append_row(["Заголовок"])
-        return w
+        sheet = sh.add_worksheet(title=name, rows=500, cols=6)
+        sheet.append_row(header)
+        return sheet
 
-emp = ws("Сотрудники")
-crit = ws("Критерии")
-rev = ws("Отзывы")
+emp = get_sheet("Сотрудники", ["Имя"])
+crit = get_sheet("Критерии", ["Критерий"])
+rev = get_sheet("Отзывы", ["Время", "Сотрудник", "Критерий", "Оценка", "user_id", "Комментарий"])
 
+# Бот
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 router = Router()
 
-class S(StatesGroup):
-    add_emp = State()
-    add_crit = State()
+class States(StatesGroup):
+    adding_emp = State()
+    adding_crit = State()
 
-# === АДМИН ===
+# === АДМИНКА ===
 @router.message(Command("start"))
-async def start(m: Message, state: FSMContext):
-    if m.from_user.id != ADMIN_ID:
-        names = [r[0] for r in emp.get_all_values()[1:] if r]
+async def cmd_start(message: Message, state: FSMContext):
+    if message.from_user.id != ADMIN_ID:
+        names = [row[0] for row in emp.get_all_values()[1:] if row and row[0].strip()]
         if not names:
-            await m.answer("Опрос ещё не настроен")
+            await message.answer("Опрос ещё не настроен.")
             return
-        await m.answer("Кого оцениваем?", reply_markup=InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text=n, callback_data=f"e_{i}")] for i, n in enumerate(names, 1)
+        await message.answer("Кого оцениваем?", reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text=name, callback_data=f"emp_{i}")] for i, name in enumerate(names, 1)
         ]))
         return
 
-    await m.answer("Админка", reply_markup=InlineKeyboardMarkup(inline_keyboard=[
-        [[InlineKeyboardButton(text="Сотрудники", callback_data="ae")]],
-        [[InlineKeyboardButton(text="Критерии", callback_data="ac")]],
-        [[InlineKeyboardButton(text="Ссылка", callback_data="link")]],
-        [[InlineKeyboardButton(text="Таблица", url=f"https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}")]]
+    await message.answer("Админ-панель", reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Сотрудники", callback_data="admin_emp")],
+        [InlineKeyboardButton(text="Критерии", callback_data="admin_crit")],
+        [InlineKeyboardButton(text="Ссылка для сотрудников", callback_data="get_link")],
+        [InlineKeyboardButton(text="Открыть таблицу", url=f"https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}")],
     ]))
 
-@router.callback_query(F.data == "ae")
-async def ae(c: CallbackQuery, state: FSMContext):
-    await c.message.edit_text("Пришли сотрудников — по одному на строку")
-    await state.set_state(S.add_emp)
+@router.callback_query(F.data == "admin_emp")
+async def admin_add_emp(call: CallbackQuery, state: FSMContext):
+    await call.message.edit_text("Пришли список сотрудников — по одному на строку:")
+    await state.set_state(States.adding_emp)
 
-@router.message(S.add_emp)
-async def se(m: Message, state: FSMContext):
-    if m.from_user.id != ADMIN_ID: return
-    n = [x.strip() for x in m.text.splitlines() if x.strip()]
-    emp.clear(); emp.append_row(["Имя"]); emp.append_rows([[x] for x in n])
-    await m.answer(f"Добавлено {len(n)} сотрудников")
+@router.message(States.adding_emp)
+async def save_employees(message: Message, state: FSMContext):
+    if message.from_user.id != ADMIN_ID:
+        return
+    names = [line.strip() for line in message.text.splitlines() if line.strip()]
+    emp.clear()
+    emp.append_row(["Имя"])
+    emp.append_rows([[name] for name in names])
+    await message.answer(f"Добавлено {len(names)} сотрудников")
     await state.clear()
 
-@router.callback_query(F.data == "ac")
-async def ac(c: CallbackQuery, state: FSMContext):
-    await c.message.edit_text("Пришли критерии — по одному на строку")
-    await state.set_state(S.add_crit)
+@router.callback_query(F.data == "admin_crit")
+async def admin_add_crit(call: CallbackQuery, state: FSMContext):
+    await call.message.edit_text("Пришли критерии — по одному на строку:")
+    await state.set_state(States.adding_crit)
 
-@router.message(S.add_crit)
-async def sc(m: Message, state: FSMContext):
-    if m.from_user.id != ADMIN_ID: return
-    c = [x.strip() for x in m.text.splitlines() if x.strip()]
-    crit.clear(); crit.append_row(["Критерий"]); crit.append_rows([[x] for x in c])
-    await m.answer(f"Добавлено {len(c)} критериев")
+@router.message(States.adding_crit)
+async def save_criteria(message: Message, state: FSMContext):
+    if message.from_user.id != ADMIN_ID:
+        return
+    criteria = [line.strip() for line in message.text.splitlines() if line.strip()]
+    crit.clear()
+    crit.append_row(["Критерий"])
+    crit.append_rows([[c] for c in criteria])
+    await message.answer(f"Добавлено {len(criteria)} критериев")
     await state.clear()
 
-@router.callback_query(F.data == "link")
-async def link(c: CallbackQuery):
-    u = (await bot.get_me()).username
-    await c.message.edit_text(f"https://t.me/{u}")
+@router.callback_query(F.data == "get_link")
+async def send_link(call: CallbackQuery):
+    username = (await bot.get_me()).username
+    await call.message.edit_text(f"Ссылка для сотрудников:\nhttps://t.me/{username}")
 
 # === ОПРОС ===
-@router.callback_query(F.data.startswith("e_"))
-async def e(c: CallbackQuery, state: FSMContext):
-    i = int(c.data.split("_")[1])
-    name = emp.row_values(i)[0]
-    await state.update_data(name=name)
-    kb = [[InlineKeyboardButton(text=t, callback_data=f"c_{j}")] for j, t in enumerate([r[0] for r in crit.get_all_values()[1:] if r], 1)]
-    await c.message.edit_text(f"Оцениваем: {name}\nКритерий:", reply_markup=InlineKeyboardMarkup(inline_keyboard=kb))
+@router.callback_query(F.data.startswith("emp_"))
+async def select_employee(call: CallbackQuery, state: FSMContext):
+    idx = int(call.data.split("_")[1])
+    name = emp.row_values(idx)[0]
+    await state.update_data(employee=name)
+    criteria = [row[0] for row in crit.get_all_values()[1:] if row and row[0].strip()]
+    await call.message.edit_text(f"Оцениваем: {name}\nВыбери критерий:", reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=c, callback_data=f"crit_{i}_{name}")] for i, c in enumerate(criteria, 1)
+    ]))
 
-@router.callback_query(F.data.startswith("c_"))
-async def c_(c: CallbackQuery, state: FSMContext):
-    i = int(c.data.split("_")[1])
-    cr = crit.row_values(i)[0]
-    d = await state.get_data()
-    kb = [[InlineKeyboardButton(text=f"{x}⭐", callback_data=f"s_{x}_{d['name']}_{cr}")] for x in range(1,6)]
-    await c.message.edit_text(f"{d['name']}\nКритерий: {cr}\nОценка:", reply_markup=InlineKeyboardMarkup(inline_keyboard=kb))
+@router.callback_query(F.data.startswith("crit_"))
+async def select_criterion(call: CallbackQuery, state: FSMContext):
+    parts = call.data.split("_", 2)
+    crit_idx = int(parts[1])
+    name = parts[2]
+    criterion = crit.row_values(crit_idx)[0]
+    await call.message.edit_text(f"{name}\nКритерий: {criterion}\nОценка 1–5:", reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=f"{i}⭐", callback_data=f"rate_{i}_{name}_{criterion}")] for i in range(1, 6)
+    ]))
 
-@router.callback_query(F.data.startswith("s_"))
-async def s(c: CallbackQuery, state: FSMContext):
-    _, score, name, cr = c.data.split("_", 3)
-    rev.append_row([datetime.now().strftime("%Y-%m-%d %H:%M"), name, cr, score, f"user_{c.from_user.id}", ""])
-    await c.message.edit_text("Спасибо! /start — ещё")
+@router.callback_query(F.data.startswith("rate_"))
+async def save_rating(call: CallbackQuery, state: FSMContext):
+    _, rating, name, criterion = call.data.split("_", 3)
+    rev.append_row([
+        datetime.now().strftime("%Y-%m-%d %H:%M"),
+        name,
+        criterion,
+        rating,
+        f"user_{call.from_user.id}",
+        ""
+    ])
+    await call.message.edit_text("Спасибо за оценку!\n/start — оценить ещё")
     await state.clear()
 
-# === ЗАПУСК ДЛЯ RENDER ===
+# === ЗАПУСК (работает на Render без ошибок) ===
 dp.include_router(router)
 
-async def polling():
-    await dp.start_polling(bot, skip_updates=True)
-
 if __name__ == "__main__":
-    # Заглушка порта + бот в фоне
-    from threading import Thread
-    Thread(target=lambda: asyncio.run(polling()), daemon=True).start()
-    
-    # Минимальный веб-сервер только для Render
-    from fastapi import FastAPI
-    app = FastAPI()
-    @app.get("/")
-    async def root():
-        return {"status": "бот работает"}
-    
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 10000)))
+    # Запускаем только polling — Render увидит живой процесс и не будет ругаться
+    asyncio.run(dp.start_polling(bot))
