@@ -225,15 +225,23 @@ async def save_text(message: Message, state: FSMContext):
 dp.include_router(router)
 
 if __name__ == "__main__":
-    print("Бот запущен!")
-    asyncio.run(dp.start_polling(bot))
-
-# === Заглушка для Render (чтобы не было ошибки "No open ports") ===
-if os.getenv("RENDER"):
-    import uvicorn
-    from fastapi import FastAPI
-    app = FastAPI()
-    @app.get("/")
-    def home():
-        return {"status": "бот работает", "time": datetime.now().isoformat()}
-    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 10000)))
+    print("Бот запущен и работает!")
+    
+    # === Заглушка для Render (чтобы не было ошибки "No open ports") ===
+    if os.getenv("RENDER") == "true":  # ← ЭТО САМОЕ ВАЖНОЕ!
+        import uvicorn
+        from fastapi import FastAPI
+        from datetime import datetime
+        
+        app = FastAPI()
+        
+        @app.get("/")
+        def home():
+            return {"status": "бот жив", "time": datetime.now().isoformat()}
+        
+        print("Запускаем заглушку на порту 10000...")
+        uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 10000)))
+    
+    else:
+        # Обычный запуск (локально)
+        asyncio.run(dp.start_polling(bot))
