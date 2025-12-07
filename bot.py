@@ -9,17 +9,17 @@ from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, C
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiagram.fsm.storage.memory import MemoryStorage
+from aiogram.fsm.storage.memory import MemoryStorage  # ← было "aiagram" — исправлено!
 
 import gspread
 from google.oauth2.service_account import Credentials
 from fastapi import FastAPI
 import uvicorn
 
-# === ОТКЛЮЧАЕМ UVLOOP — ЭТО ГЛАВНОЕ! ===
+# === ОТКЛЮЧАЕМ UVLOOP ===
 os.environ["AIOGRAM_USE_UVLOOP"] = "0"
 
-# === НАСТРОЙКИ ===
+# === НАСТРОЙКИ
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = int(os.getenv("ADMIN_ID"))
 SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
@@ -33,17 +33,12 @@ creds = Credentials.from_service_account_info(creds_dict, scopes=[
 gc = gspread.authorize(creds)
 sh = gc.open_by_key(SPREADSHEET_ID)
 
-# Листы
 def get_sheet(name, header):
-    try:
-        return sh.worksheet(name)
-    except:
-        ws = sh.add_worksheet(title=name, rows=1000, cols=10)
-        ws.append_row(header)
-        return ws
+    try: return sh.worksheet(name)
+    except: ws = sh.add_worksheet(title=name, rows=1000, cols=10); ws.append_row(header); return ws
 
 emp = get_sheet("Сотрудники", ["Имя"])
-crit = get_sheet("Критерии", ["Критерий", "Тип"])  # score или text
+crit = get_sheet("Критерии", ["Критерий", "Тип"])
 rev = get_sheet("Отзывы", ["Время","Сотрудник","Критерий","Оценка","Комментарий","user_id"])
 
 bot = Bot(token=BOT_TOKEN)
@@ -242,9 +237,9 @@ async def link(call: CallbackQuery):
     username = (await bot.get_me()).username
     await call.message.edit_text(f"https://t.me/{username}")
 
-# === ЗАПУСК (РАБОТАЕТ НА RENDER БЕСПЛАТНО) ===
 dp.include_router(router)
 
+# === ЗАПУСК (РАБОТАЕТ НА RENDER БЕСПЛАТНО) ===
 if __name__ == "__main__":
     print("Бот запущен и работает!")
 
