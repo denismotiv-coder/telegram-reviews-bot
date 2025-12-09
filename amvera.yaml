@@ -1,6 +1,10 @@
+version: null
 meta:
   environment: python
-toolchain:
-  name: pip
+  toolchain:
+    name: pip
+    version: latest
+build: {}
 run:
   command: python bot.py
+serviceType: compute
