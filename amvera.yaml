@@ -4,7 +4,8 @@ meta:
   toolchain:
     name: pip
     version: latest
-build: {}
+build:
+  useCache: false   # ← ЭТО ГЛАВНОЕ! Полностью отключает кэш
 run:
   command: python bot.py
 serviceType: compute
